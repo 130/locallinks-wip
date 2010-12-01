@@ -1,6 +1,6 @@
 {
   "name":            "LocalLinks WIP",
-  "version":         "2010.12.1.17581",
+  "version":         "2010.12.1.18481",
   "description":     "Allows opening file:// links on pages loaded by http(s):// scheme",
   "update_url":      "http://130.github.com/locallinks-wip/crx/updates.xml",
   "permissions":     ["tabs"],
