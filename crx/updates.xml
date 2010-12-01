@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gupdate xmlns="http://www.google.com/update2/response" protocol="2.0">
+  <app appid="x">
+    <updatecheck
+      codebase='http://130.github.com/locallinks-wip/crx/locallinks-wip-2010.12.1.17581.crx'
+      version='2010.12.1.17581'
+    />
+  </app>
+</gupdate>
