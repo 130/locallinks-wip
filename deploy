@@ -1,1 +1,88 @@
-#!/bin/sh
+#!/bin/bash
+
+if [ ! -e manifest.json ]; then
+  echo "ERROR!"
+  echo "Can't find manifest.json"
+  echo "Seems like current directory isn't Chrome extension directory"
+  echo "SOLUTION: cd to locallinks-wip directory"
+  exit 1
+fi
+
+grep --quiet --no-messages "LocalLinks WIP" manifest.json
+if [ "$?x" != "0x" ]; then
+  echo "ERROR!"
+  echo "Can't find string 'LocalLinks WIP' in manifest.json"
+  echo "Seems like current directory isn't locallinks-wip directory"
+  echo "SOLUTION: cd to locallinks-wip directory"
+  exit 1
+fi
+
+# Quoted from
+# http://code.google.com/chrome/extensions/dev/manifest.html#version
+#
+# One to four dot-separated integers identifying the version of extension.
+#
+# A couple of rules apply to the integers:
+# * they must be between 0 and 65535, inclusive,
+# * and non-zero integers can't start with 0.
+#
+# For example, 99999 and 032 are both invalid.
+
+# Make version number as "YYYY.MM.DD.HHMM1"
+CURRENT_DATE=$(date --utc +%-Y.%-m.%-d%H%M)
+CURRENT_YYMMDD=${CURRENT_DATE:0:${#CURRENT_DATE}-4}
+CURRENT_HHMM=${CURRENT_DATE: -4}
+while [ "${CURRENT_HHMM:0:1}x" == "0x" ]; do
+  CURRENT_HHMM=${CURRENT_HHMM:1}
+done
+VERSION="${CURRENT_YYMMDD}.${CURRENT_HHMM}1"
+
+while \
+  [ "$(git ls-tree --name-only gh-pages crx/locallinks-wip-$VERSION.crx)x" \
+    != "x" ]; do
+  VERSION_BASE=${VERSION:0:${#VERSION}-1}
+  NEXT_VERSION_NUM=$(( ${VERSION: -1} + 1 ))
+  VERSION="${VERSION_BASE}${NEXT_VERSION_NUM}"
+  if [ "${NEXT_VERSION_NUM}x" == "10x" ]; then
+    echo "ERROR!"
+    echo "In trying to increment version suffix it getted to 10!"
+    echo "Resulting version is ${VERSION}"
+    echo "Suffix doesn't allowed to be 10 or greater because it could lead to"
+    echo "invalid last component of version number (greater than 65535)."
+    echo "SOLUTION: just wait a minute and retry deployment."
+    exit 1
+  fi
+done
+
+CRX_NAME="locallinks-wip-$VERSION"
+
+EXPORT_DIR=$(mktemp --directory --tmpdir "$CRX_NAME.XXX")
+trap "rm -rf -- ${EXPORT_DIR}" EXIT
+
+mkdir $EXPORT_DIR/src
+
+exit 0 # Following part is untested yet.
+
+git checkout master
+sed -ie "s/^\(\s*\"version\":\s*\)\"/\1\"$VERSION\",/g" manifest.json
+git commit --all -m "Increment version"
+git checkout-index \
+  --prefix=${EXPORT_DIR}/src/ \
+  --force \
+  --all \
+  -- background_page content_script options_page lib manifest.json COPYING
+
+# PACK EXTENSION here
+
+if [ ! -e $EXPORT_DIR/$CRX_NAME.crx ]; then
+  echo "ERROR!"
+  echo "Packed extension wasn't found on path '$EXPORT_DIR/$CRX_NAME.crx'"
+  exit 1
+fi
+
+git checkout gh-pages
+mv $EXPORT_DIR/$CRX_NAME.crx crx
+sed -ie "s///g" updates.xml
+sed -ie "s///g" updates.xml
+sed -ie "s///g" index.html
+git commit --all -m "Add $CRX_NAME.crx"
