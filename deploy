@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Check:
+# * if current directory is Git repository
+# * if Git repository has 'master' branch
+git checkout --quiet master
+if [ "$?x" != "0x" ]; then
+  exit 1
+fi
+
+# Check:
+# * if current directory is Git repository
+# * if Git repository has 'gh-pages' branch
+git checkout --quiet gh-pages
+if [ "$?x" != "0x" ]; then
+  exit 1
+fi
+
+git checkout --quiet master
+
 if [ ! -e manifest.json ]; then
   echo "ERROR!"
   echo "Can't find manifest.json"
@@ -14,6 +32,13 @@ if [ "$?x" != "0x" ]; then
   echo "Can't find string 'LocalLinks WIP' in manifest.json"
   echo "Seems like current directory isn't locallinks-wip directory"
   echo "SOLUTION: cd to locallinks-wip directory"
+  exit 1
+fi
+
+if [ "${LOCALLINKS_WIP_KEY_PEM}x" == "x" \
+      -o ! -e "${LOCALLINKS_WIP_KEY_PEM}" ]; then
+  echo "ERROR!"
+  echo "Private key wasn't found on path defined in LOCALLINKS_WIP_KEY_PEM!"
   exit 1
 fi
 
@@ -37,12 +62,13 @@ while [ "${CURRENT_HHMM:0:1}x" == "0x" ]; do
 done
 VERSION="${CURRENT_YYMMDD}.${CURRENT_HHMM}1"
 
-while \
-  [ "$(git ls-tree --name-only gh-pages crx/locallinks-wip-$VERSION.crx)x" \
-    != "x" ]; do
+CRX_NAME="locallinks-wip-$VERSION"
+while [ "$(git ls-tree --name-only gh-pages crx/${CRX_NAME}.crx)x" != "x" ]; do
   VERSION_BASE=${VERSION:0:${#VERSION}-1}
   NEXT_VERSION_NUM=$(( ${VERSION: -1} + 1 ))
   VERSION="${VERSION_BASE}${NEXT_VERSION_NUM}"
+  CRX_NAME="locallinks-wip-$VERSION"
+
   if [ "${NEXT_VERSION_NUM}x" == "10x" ]; then
     echo "ERROR!"
     echo "In trying to increment version suffix it getted to 10!"
@@ -54,33 +80,69 @@ while \
   fi
 done
 
-CRX_NAME="locallinks-wip-$VERSION"
-
 EXPORT_DIR=$(mktemp --directory --tmpdir "$CRX_NAME.XXX")
 trap "rm -rf -- ${EXPORT_DIR}" EXIT
 
 mkdir $EXPORT_DIR/src
 
-exit 0 # Following part is untested yet.
-
-git checkout master
-sed -ie "s/^\(\s*\"version\":\s*\)\"/\1\"$VERSION\",/g" manifest.json
+sed -ie "s/^\(\s*\"version\":\s*\)\".*$/\1\"$VERSION\",/g" manifest.json
 git commit --all -m "Increment version"
+
 git checkout-index \
   --prefix=${EXPORT_DIR}/src/ \
   --force \
-  --all \
-  -- background_page content_script options_page lib manifest.json COPYING
+  -- background_page/* content_script/* options_page/* lib/* \
+     manifest.json COPYING
 
-# PACK EXTENSION here
+# PACKING EXTENSION start
+CWD=$(pwd -P)
 
-if [ ! -e $EXPORT_DIR/$CRX_NAME.crx ]; then
+cd "${EXPORT_DIR}/src"
+# zip up the crx dir
+zip -qr -9 -X "${EXPORT_DIR}/${CRX_NAME}.zip" .
+
+cd "$EXPORT_DIR"
+# signature
+openssl sha1 -sha1 -binary -sign "$LOCALLINKS_WIP_KEY_PEM" \
+  < "${CRX_NAME}.zip" \
+  > "${CRX_NAME}.sig"
+# public key
+openssl rsa -pubout -outform DER \
+  < "$LOCALLINKS_WIP_KEY_PEM" \
+  > "${CRX_NAME}.pub" \
+  2>/dev/null
+
+byte_swap () {
+  # Take "abcdefgh" and return it as "ghefcdab"
+  echo "${1:6:2}${1:4:2}${1:2:2}${1:0:2}"
+}
+
+pub_len_hex=$(byte_swap \
+  $(printf '%08x\n' $(ls -l "${CRX_NAME}.pub" | awk '{print $5}'))
+)
+sig_len_hex=$(byte_swap \
+  $(printf '%08x\n' $(ls -l "${CRX_NAME}.sig" | awk '{print $5}'))
+)
+(
+  # "Cr24" is magic number (required constant in beginning of *.crx file).
+  # "2" is currently used version of *.crx file format (unsigned int 32 bit).
+  #
+  #    "C r  2 4  2"
+  echo "4372 3234 0200 0000 $pub_len_hex $sig_len_hex" | xxd -r -p
+  cat "${CRX_NAME}.pub" "${CRX_NAME}.sig" "${CRX_NAME}.zip"
+) > "${CRX_NAME}.crx"
+
+if [ ! -e "$EXPORT_DIR/$CRX_NAME.crx" ]; then
   echo "ERROR!"
   echo "Packed extension wasn't found on path '$EXPORT_DIR/$CRX_NAME.crx'"
   exit 1
 fi
+cd "$CWD"
+# PACKING EXTENSION end
 
-git checkout gh-pages
+exit 0 # Following part is untested yet.
+
+git checkout --quiet gh-pages
 mv $EXPORT_DIR/$CRX_NAME.crx crx
 sed -ie "s///g" updates.xml
 sed -ie "s///g" updates.xml
