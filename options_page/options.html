@@ -1,22 +1,85 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta charset="utf-8">
     <title>LocalLinks extension options</title>
+    <link rel="stylesheet" type="text/css" href="options.css" />
+    <script type="text/javascript" src="../lib/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="options_behavior.js"></script>
   </head>
-  <body>
-    <h1>About extension</h1>
-    <p>
-      Author: Leonid Borisenko (<a href="mailto:leo.borisenko@gmail.com">e-mail me</a>)
-    </p>
-    <p>
-      This extension was born from side effect of <a href="http://code.google.com/p/rightlink/">RightLink</a> noticed by Jim Hendry.
-    </p>
-    <p>
-      Homepage: <a href="http://code.google.com/p/locallinks">http://code.google.com/p/locallinks</a>
-    </p>
-    <p>
-      For same functionality in Firefox try out extension <a href="https://addons.mozilla.org/en-US/firefox/addon/281"><strong>LocalLink</strong></a> by <a href="https://addons.mozilla.org/en-US/firefox/user/176">Michael J Gruber</a>.
-    </p>
-  </body>
+  <div id="pane" class="tabs">
+    <ul class="tabs-nav">
+      <li class="tab-selected"><a href="#settings">settings</a></li>
+      <li><a href="#help">help</a></li>
+      <li class="tab-rightmost"><a href="#about">about</a></li>
+    </ul>
+    <div id="settings" class="pane-selected">
+      <button id="whitelist-add-rule">add rule</button>
+      <table id="whitelist">
+        <caption>whitelist</caption>
+        <thead>
+          <tr>
+            <th>address</th>
+            <th>handled schemes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>*</td>
+            <td>file://</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="help">
+      <p id="description">
+        It mainly allows opening file:// links on pages loaded by http(s):// scheme.
+      </p>
+      <h3><a href="#">Whitelist interface</a></h3>
+      <div>
+        <h4>Hotkeys:</h4>
+        <ul class="hotkeys">
+          <li><kbd>Enter</kbd>/<kbd>Insert</kbd> - add rule</li>
+          <li><kbd>Enter</kbd> (in rule editing) - save rule</li>
+          <li><kbd>Esc</kbd> (in rule editing) - cancel rule changes</li>
+        </ul>
+        <p>
+          Left click on rule - edit rule.
+        </p>
+        <p>
+          Alt + Left click on rule - delete rule.
+        </p>
+        <p>
+          Holding left mouse button on rule and moving mouse around - reorder rules.
+        </p>
+      </div>
+    </div>
+    <div id="about">
+      <div id="changelog">
+        <a id="changelog-toggle" href="#">Toggle CHANGELOG</a>
+        <div id="changelog-content">
+          <h3>LocalLinks 1.1 (2010-07-10)</h3>
+          <ul>
+            <li>Respect target = "_blank" attribute on left click.</li>
+          </ul>
+          <h3>LocalLinks 1.0 (2010-03-12)</h3>
+          <ul>
+            <li>Initial release.</li>
+          </ul>
+        </div>
+      </div>
+      <p>
+        Author: Leonid Borisenko (<a href="mailto:leo.borisenko@gmail.com">e-mail me</a>)
+      </p>
+      <p>
+        This extension was born from side effect of <a href="http://code.google.com/p/rightlink/">RightLink</a> noticed by Jim Hendry.
+      </p>
+      <p>
+        Homepage: <a href="http://code.google.com/p/locallinks">http://code.google.com/p/locallinks</a>
+      </p>
+      <p>
+        For same functionality in Firefox try out extension <a href="https://addons.mozilla.org/en-US/firefox/addon/281"><strong>LocalLink</strong></a> by <a href="https://addons.mozilla.org/en-US/firefox/user/176">Michael J Gruber</a>.
+      </p>
+    </div>
+  </div>
 </html>

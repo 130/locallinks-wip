@@ -1,0 +1,171 @@
+#pane {
+  margin: 0 1em;
+}
+
+.tabs .tabs-nav {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.tabs .tabs-nav .tab-rightmost {
+  float:right;
+}
+
+.tabs .tabs-nav li {
+  list-style: none;
+  display: inline;
+  white-space: nowrap;
+  background-color: #F5F5FF;
+  font-weight: bold;
+  font-size: 20pt;
+}
+
+.tabs .tabs-nav li a {
+  color: purple;
+  text-decoration: none;
+}
+
+.tabs .tabs-nav li.tab-selected {
+  background-color: #BFB;
+}
+
+.tabs .tabs-nav li.tab-selected a {
+  cursor: text;
+}
+
+.tabs .tabs-nav li a {
+   cursor: pointer;
+}
+
+#pane > div {
+  display: none;
+  margin: 1em 0;
+}
+
+#pane > div.pane-selected {
+  display: block;
+}
+
+#settings {
+  position: relative;
+  padding-top: 0.3em;
+  clear: both;
+}
+
+#whitelist-add-rule {
+  position: relative;
+  font-size: 10pt;
+  left: 8em;
+  z-index: 1;
+}
+
+#whitelist {
+  position: relative;
+  top: -1.75em;
+  border: 1px solid black;
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+
+#whitelist caption {
+  text-align: left;
+  font-size: 18pt;
+  background-color: #FFEFEF;
+  padding-left: 0.5em;
+  width: 7em;
+}
+
+#whitelist > tbody > tr {
+  cursor: move;
+}
+
+#whitelist > tbody > tr.moved-row {
+  background-color: #FFFF33;
+}
+
+#whitelist th, #whitelist td {
+  padding: 0 0.4em;
+  border: 1px solid black;
+}
+
+#whitelist th {
+  background-color: #FBFBFB;
+}
+
+#whitelist td {
+  font-size: 14pt;
+}
+
+#whitelist td:first-child {
+  width: 70%;
+  max-width: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#whitelist td:last-child {
+  text-align: center;
+  width: 30%;
+  min-width: 30%;
+}
+
+#whitelist input {
+  width: 100%;
+}
+
+#help > * {
+  margin: 0;
+  padding: 0;
+}
+
+#help > h3 a {
+  text-decoration: none;
+  border-bottom: 1px dashed blue;
+}
+
+#help > h3 + div {
+  padding: 1ex 0;
+  display: none;
+}
+
+#help > h3 + div * {
+  margin: 0 0 1ex 0;
+  padding: 0;
+}
+
+#help > h3 + div ul.hotkeys {
+  margin-left: 1em;
+  list-style: none;
+}
+
+#help p#description {
+  margin-bottom: 1ex;
+  font-size: 16pt;
+}
+
+#changelog {
+  margin-bottom: 0;
+}
+
+#changelog-toggle {
+  text-decoration: none;
+  border-bottom: 1px dashed blue;
+}
+
+#changelog-content {
+  display: none;
+  border: 1px solid blue;
+  margin-top: 1ex;
+  padding: 0 0.5em;
+}
+
+#changelog-content * {
+  margin: 0;
+  padding: 0;
+}
+
+#changelog-content ul {
+  padding-left: 2em;
+}
