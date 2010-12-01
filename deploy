@@ -1,5 +1,7 @@
 #!/bin/bash
 
+MASTER_COMMIT_MESSAGE="Increment version"
+
 # Check:
 # * if current directory is Git repository
 # * if Git repository has 'master' branch
@@ -8,9 +10,20 @@ if [ "$?x" != "0x" ]; then
   exit 1
 fi
 
+if [ "$(git log --pretty=format:%s --max-count=1)" \
+     == "$MASTER_COMMIT_MESSAGE" ]; then
+  echo "ERROR!"
+  echo "Message of last commit to master branch is equialent to message"
+  echo "hardcoded in this deployment script."
+  echo "Seems like releasing new extension version without useful changes."
+  echo "SOLUTION: make some useful commits to master branch"
+  exit 1
+fi
+
 # Check:
 # * if current directory is Git repository
 # * if Git repository has 'gh-pages' branch
+# * if current working directory changes are commited
 git checkout --quiet gh-pages
 if [ "$?x" != "0x" ]; then
   exit 1
@@ -86,7 +99,7 @@ trap "rm -rf -- ${EXPORT_DIR}" EXIT
 mkdir $EXPORT_DIR/src
 
 sed -ie "s/^\(\s*\"version\":\s*\)\".*$/\1\"$VERSION\",/g" manifest.json
-git commit --all -m "Increment version"
+git commit --all -m "$MASTER_COMMIT_MESSAGE"
 
 git checkout-index \
   --prefix=${EXPORT_DIR}/src/ \
