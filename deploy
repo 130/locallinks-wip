@@ -153,11 +153,15 @@ fi
 cd "$CWD"
 # PACKING EXTENSION end
 
-exit 0 # Following part is untested yet.
-
 git checkout --quiet gh-pages
-mv $EXPORT_DIR/$CRX_NAME.crx crx
-sed -ie "s///g" updates.xml
-sed -ie "s///g" updates.xml
-sed -ie "s///g" index.html
-git commit --all -m "Add $CRX_NAME.crx"
+mv "${EXPORT_DIR}/${CRX_NAME}.crx" crx
+sed -ie \
+  "s/^\(.\+codebase='.\+\)locallinks-wip-.\+crx\('.*\)$/\1${CRX_NAME}.crx\2/g"\
+  crx/updates.xml
+sed -ie \
+  "s/^\(.\+version='\).\+\('.*\)$/\1${VERSION}\2/g" \
+  crx/updates.xml
+sed -ie \
+  "s/^\(.\+a href=\"crx\/\)locallinks.\+crx\(\".\+\)$/\1${CRX_NAME}.crx\2/g" \
+  index.html
+git commit --all -m "Add ${CRX_NAME}.crx"
