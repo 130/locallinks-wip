@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>Background controller of LocalLinks extension</title>
+
+    <!-- Load jQuery library from path defined in manifest.json -->
+    <script type="text/javascript">
+      // Dynamically append '<script>' tag with given URL.
+      function load_jquery_script(jquery_script_url)
+      {
+        var jquery_script = document.createElement('script');
+        jquery_script.type = 'text/javascript';
+        jquery_script.src = jquery_script_url;
+        document.getElementsByTagName("head")[0].appendChild(jquery_script);
+      }
+
+      // Gets parsed manifest, traverses into 'content_scripts' section
+      // in search for jQuery library path.
+      // Return first found path.
+      function load_jquery_lib(manifest)
+      {
+        var jquery_lib_path_re = new RegExp('^lib/jquery.*js$');
+
+        /* Related manifest part:
+         * {
+         *   content_scripts: [{
+         *     js: ['smth.js']
+         *   }]
+         * }
+         */
+        var all_content_scripts = manifest.content_scripts;
+        for (var i = 0; i < all_content_scripts.length; ++i)
+        {
+          var content_script_js = all_content_scripts[i].js;
+          for (var i = 0; i <  content_script_js.length; ++i)
+          {
+            var js_path = content_script_js[i];
+            if (jquery_lib_path_re.test(js_path))
+            {
+              var jquery_script_url = chrome.extension.getURL(js_path);
+              load_jquery_script(jquery_script_url);
+              return;
+            }
+          }
+        }
+      }
+
+      var manifest_url = chrome.extension.getURL('manifest.json');
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function()
+      {
+          if (xhr.readyState == 4)
+          {
+              var manifest = JSON.parse(xhr.responseText);
+              load_jquery_lib(manifest);
+          }
+      }
+      xhr.open('GET', manifest_url, /* open synchronously */ false);
+      xhr.send();
+    </script>
+
+    <script type="text/javascript" src="tab_kind.js"></script>
+    <script type="text/javascript" src="actions.js"></script>
+    <script type="text/javascript">
+      function openIn(target_tab)
+      {
+        switch(target_tab)
+        {
+          case CURRENT_TAB:        return openLinkInCurrentTab;
+          case NEW_FOREGROUND_TAB: return openLinkInNewForegroundTab;
+          case NEW_BACKGROUND_TAB: return openLinkInNewBackgroundTab;
+        };
+      };
+
+      chrome.extension.onRequest.addListener(function(request) {
+        openIn(request.target_tab)(request.url);
+      });
+    </script>
+  </head>
+</html>
+

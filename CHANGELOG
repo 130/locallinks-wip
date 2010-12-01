@@ -1,0 +1,5 @@
+== LocalLinks 1.1 (2010-07-10)
+  + Respect target = "_blank" attribute on left click
+
+== LocalLinks 1.0 (2010-03-12)
+  * Initial release.
