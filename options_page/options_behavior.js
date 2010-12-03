@@ -2,6 +2,8 @@
 
 // Execute, when page will be completely loaded.
 $(function(){
+  initialize_settings();
+
   // Handle clicking on tab:
   $("#pane > ul > li a").click(function(event){
     // * Change selected tab.
@@ -17,6 +19,11 @@ $(function(){
     // * Prevent following bogus link.
     event.preventDefault();
   })
+
+  show_stored_whitelist_rules(
+    locallinks.storage.get("whitelist"),
+    "#whitelist > tbody"
+  );
 
   // Handle hotkeys for adding new rule to whitelist.
   $("body").keydown(function(event){
@@ -81,7 +88,11 @@ function whitelist_td_click_handler(event)
   // Delete row with rule on `Alt-Click`.
   if (event.altKey)
   {
-    tr.fadeOut('slow', function() { $(this).remove() } );
+    tr.fadeOut('slow', function(){
+      var table_container = $(this).parent()
+      $(this).remove();
+      store_whitelist_rules(table_container);
+    });
   }
   // or start editing.
   else start_editing_mode(tr, this);
@@ -184,6 +195,8 @@ function start_moving_whitelist_row(tr, lastY)
       $(event.target).data("prevent_editing", true);
     }
 
+    store_whitelist_rules(tr.parent());
+
     // * Unbind auxiliary (and no more needed) event handlers.
     all_other_trs.unbind("mouseenter.on_dropping_moved_row");
     $(document).unbind("mouseup.stop_moving_row");
@@ -252,9 +265,60 @@ function finish_editing_mode(replace_td_content_callback)
   $(document).unbind("click.in_editing_mode");
 
   in_editing_mode(false);
+
+  store_whitelist_rules(edited_tr.parent());
 }
 
 // === Helper functions ===
+
+function initialize_settings()
+{
+  _({
+    "whitelist": [
+      {address: "*", handled_schemes: ["file://"]},
+    ]
+  }).each(function(setting_value, setting_key){
+    if (_(locallinks.storage.get(setting_key)).isUndefined())
+    {
+      locallinks.storage.set(setting_key, setting_value);
+    }
+  });
+}
+
+function show_stored_whitelist_rules(whitelist_rules, table_container)
+{
+  if(_(whitelist_rules).isUndefined())
+  {
+    return;
+  }
+
+  var table = $(table_container);
+  table.children("tr").remove();
+
+  _(whitelist_rules).each(function(rule){
+    var textualized_rule = _(rule).clone();
+    textualized_rule.handled_schemes = rule.handled_schemes.join(", ");
+
+    table.append(_.template(
+      "<tr><td><%= address %></td><td><%= handled_schemes %></td></tr>",
+      textualized_rule
+    ));
+  });
+}
+
+function store_whitelist_rules(table_container)
+{
+  var rules = $(table_container).children("tr").map(function(){
+    var cells =
+      $(this).children("td").map(function() { return $(this).text(); });
+    return {
+      address:         cells[0],
+      handled_schemes: _(cells[1].split(",")).invoke("trim")
+    }
+  });
+
+  locallinks.storage.set("whitelist", rules.get());
+}
 
 // #### Check, if we are in editing mode, or set editing mode flag.
 // ----------------------------------------------------------------
